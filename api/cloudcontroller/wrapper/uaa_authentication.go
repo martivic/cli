@@ -1,10 +1,11 @@
 package wrapper
 
 import (
+	"fmt"
 	"net/http"
 
 	"code.cloudfoundry.org/cli/api/cloudcontroller"
-	"code.cloudfoundry.org/cli/api/cloudcontroller/ccv2"
+	"code.cloudfoundry.org/cli/api/cloudcontroller/ccv3"
 )
 
 //go:generate counterfeiter . UAAClient
@@ -45,7 +46,8 @@ func (t *UAAAuthentication) Make(passedRequest cloudcontroller.Request, passedRe
 	passedRequest.Header.Set("Authorization", t.client.AccessToken())
 
 	err := t.connection.Make(passedRequest, passedResponse)
-	if _, ok := err.(ccv2.InvalidAuthTokenError); ok {
+	fmt.Printf("error %#v\n", err)
+	if _, ok := err.(ccv3.InvalidAuthTokenError); ok {
 		err = t.client.RefreshToken()
 		if err != nil {
 			return err

@@ -5,10 +5,6 @@ import (
 	"code.cloudfoundry.org/cli/api/cloudcontroller/ccv3/internal"
 )
 
-type Link struct {
-	URL string `json:"href"`
-}
-
 type APIs struct {
 	Links struct {
 		CCV3Endpoint Link `json:"cloud_controller_v3"`

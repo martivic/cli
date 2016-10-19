@@ -14,11 +14,7 @@ const (
 	RunTaskRequest       = "Run Task"
 	AppTaskRequest       = "App's Task"
 	TerminateTaskRequest = "Cancel a Task"
-)
-
-const (
-	RootResource  = "root"
-	TasksResource = "tasks"
+	ApplicationsRequest  = "List applications"
 )
 
 var routes map[string]Route = map[string]Route{
@@ -27,7 +23,13 @@ var routes map[string]Route = map[string]Route{
 	AppTaskRequest:       Route{Path: "/v3/apps/:app_guid/tasks", Method: "GET", Resource: RootResource},
 	RunTaskRequest:       Route{Path: "/v3/apps/:app_guid/tasks", Method: "POST", Resource: RootResource},
 	TerminateTaskRequest: Route{Path: "/v3/tasks/:task_guid/cancel", Method: "PUT", Resource: RootResource},
+	ApplicationsRequest:  Route{Path: "/v3/apps", Method: "GET", Resource: RootResource},
 }
+
+const (
+	RootResource  = "root"
+	TasksResource = "tasks"
+)
 
 //-----------------------------------------------------------------------------------------------------------------------
 

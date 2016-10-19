@@ -8,3 +8,11 @@ type PaginatedWrapper struct {
 	} `json:"pagination"`
 	Resources interface{} `json:"resources"`
 }
+
+type Link struct {
+	URL      string `json:"href"`
+	Method   string `json:"method"`
+	Metadata struct {
+		Version string `json:"version"`
+	} `json:"meta"`
+}

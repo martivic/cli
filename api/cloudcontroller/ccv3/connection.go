@@ -21,15 +21,15 @@ type Connection struct {
 }
 
 func NewConnection(router *internal.Router, skipSSLValidation bool) *Connection {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: skipSSLValidation,
-		},
-	}
-
 	return &Connection{
-		HTTPClient: &http.Client{Transport: tr},
-		router:     router,
+		HTTPClient: &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: skipSSLValidation,
+				},
+			},
+		},
+		router: router,
 	}
 }
 
@@ -41,7 +41,6 @@ func (connection *Connection) Make(passedRequest cloudcontroller.Request, passed
 
 	response, err := connection.HTTPClient.Do(req)
 	if err != nil {
-		fmt.Println("error from CC", err)
 		return connection.processRequestErrors(err)
 	}
 
@@ -115,6 +114,7 @@ func (connection *Connection) populateResponse(response *http.Response, passedRe
 		}
 	}
 
+	fmt.Printf("response %#v\n", response)
 	err := connection.handleStatusCodes(response)
 	if err != nil {
 		return err
@@ -122,6 +122,8 @@ func (connection *Connection) populateResponse(response *http.Response, passedRe
 
 	if passedResponse.Result != nil {
 		rawBytes, _ := ioutil.ReadAll(response.Body)
+
+		fmt.Printf("response body %s\n", rawBytes)
 		passedResponse.RawResponse = rawBytes
 
 		decoder := json.NewDecoder(bytes.NewBuffer(rawBytes))

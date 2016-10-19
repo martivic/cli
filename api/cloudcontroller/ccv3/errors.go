@@ -12,7 +12,7 @@ import (
 type CCErrorResponse struct {
 	Code        int    `json:"code"`
 	Description string `json:"description"`
-	Title       string `json:"title"`
+	ErrorCode   string `json:"error_code"`
 }
 
 // UnauthorizedError is returned when the client does not have the correct
@@ -63,7 +63,7 @@ type UnexpectedResponseError struct {
 }
 
 func (e UnexpectedResponseError) Error() string {
-	return fmt.Sprintf("Unexpected Response\nResponse Code: %s\nCC Code: %i\nCC Title: %s\nDescription: %s", e.ResponseCode, e.Code, e.Title, e.Description)
+	return fmt.Sprintf("Unexpected Response\nResponse Code: %s\nCC Code: %i\nCC ErrorCode: %s\nDescription: %s", e.ResponseCode, e.Code, e.ErrorCode, e.Description)
 }
 
 type errorWrapper struct {
@@ -97,7 +97,7 @@ func (e errorWrapper) convert(rawErr cloudcontroller.RawCCError) error {
 
 	switch rawErr.StatusCode {
 	case http.StatusUnauthorized:
-		if errorResponse.Title == "CF-InvalidAuthToken" {
+		if errorResponse.ErrorCode == "CF-InvalidAuthToken" {
 			return InvalidAuthTokenError{Message: errorResponse.Description}
 		}
 		return UnauthorizedError{Message: errorResponse.Description}

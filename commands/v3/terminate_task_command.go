@@ -2,8 +2,8 @@ package v3
 
 import (
 	"fmt"
+	"net/url"
 
-	"code.cloudfoundry.org/cli/api/cloudcontroller/ccv2"
 	"code.cloudfoundry.org/cli/api/cloudcontroller/ccv3"
 	"code.cloudfoundry.org/cli/api/cloudcontroller/wrapper"
 	"code.cloudfoundry.org/cli/api/uaa"
@@ -41,11 +41,11 @@ func (cmd *TerminateTaskCommand) Execute(args []string) error {
 	uaaClient := uaa.NewClient(v2client.AuthorizationEndpoint(), cmd.Config)
 	v3client.WrapConnection(wrapper.NewUAAAuthentication(uaaClient))
 
-	apps, _, err := v2client.GetApplications([]ccv2.Query{{
-		Filter:   ccv2.NameFilter,
-		Operator: ccv2.EqualOperator,
-		Value:    cmd.RequiredArgs.AppName,
-	}})
+	queries := url.Values{
+		"space_guids": []string{cmd.Config.TargetedSpace().GUID},
+		"names":       []string{cmd.RequiredArgs.AppName},
+	}
+	apps, err := v3client.GetApplications(queries)
 	if err != nil {
 		return err
 	}

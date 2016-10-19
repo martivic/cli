@@ -2,8 +2,8 @@ package v3
 
 import (
 	"fmt"
+	"net/url"
 
-	"code.cloudfoundry.org/cli/api/cloudcontroller/ccv2"
 	"code.cloudfoundry.org/cli/api/cloudcontroller/ccv3"
 	"code.cloudfoundry.org/cli/api/cloudcontroller/wrapper"
 	"code.cloudfoundry.org/cli/api/uaa"
@@ -38,8 +38,8 @@ func (cmd *RunTaskCommand) Execute(args []string) error {
 		"User":  user.Name,
 	})
 
-	client := ccv3.NewClient()
-	_, err = client.TargetCF(cmd.Config.Target(), true)
+	v3client := ccv3.NewClient()
+	_, err = v3client.TargetCF(cmd.Config.Target(), true)
 	if err != nil {
 		return err
 	}
@@ -49,22 +49,23 @@ func (cmd *RunTaskCommand) Execute(args []string) error {
 		return err
 	}
 	uaaClient := uaa.NewClient(v2client.AuthorizationEndpoint(), cmd.Config)
-	client.WrapConnection(wrapper.NewUAAAuthentication(uaaClient))
+	v3client.WrapConnection(wrapper.NewUAAAuthentication(uaaClient))
 
-	apps, _, err := v2client.GetApplications([]ccv2.Query{{
-		Filter:   ccv2.NameFilter,
-		Operator: ccv2.EqualOperator,
-		Value:    cmd.RequiredArgs.AppName,
-	}})
+	queries := url.Values{
+		"space_guids": []string{cmd.Config.TargetedSpace().GUID},
+		"names":       []string{cmd.RequiredArgs.AppName},
+	}
+	apps, err := v3client.GetApplications(queries)
 	if err != nil {
 		return err
 	}
 
 	if len(apps) == 0 {
+		fmt.Println("no apps found")
 		return nil
 	}
 
-	task, err := client.RunTaskByApplication(apps[0].GUID, fmt.Sprintf("{\"command\":\"%s\"}", cmd.RequiredArgs.Command))
+	task, err := v3client.RunTaskByApplication(apps[0].GUID, fmt.Sprintf("{\"command\":\"%s\"}", cmd.RequiredArgs.Command))
 	if err != nil {
 		return err
 	}
