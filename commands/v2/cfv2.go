@@ -1,8 +1,8 @@
 package v2
 
-var Commands commandList
+var Commands CommandList
 
-type commandList struct {
+type CommandList struct {
 	VerboseOrVersion                   bool                                      `short:"v" long:"version" description:"verbose and version flag"`
 	App                                AppCommand                                `command:"app" description:"Display health and status for app"`
 	Help                               HelpCommand                               `command:"help" alias:"h" description:"Show help"`

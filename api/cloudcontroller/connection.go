@@ -1,6 +1,7 @@
 package cloudcontroller
 
 import (
+	"bytes"
 	"net/http"
 	"net/url"
 
@@ -14,7 +15,9 @@ type Request struct {
 	RequestName string
 
 	URI    string
+	URL    string
 	Method string
+	Body   *bytes.Buffer
 }
 
 type Response struct {
