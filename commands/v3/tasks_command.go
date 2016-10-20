@@ -1,6 +1,7 @@
 package v3
 
 import (
+	"fmt"
 	"net/url"
 
 	"code.cloudfoundry.org/cli/api/cloudcontroller/ccv3"
@@ -26,9 +27,11 @@ func (cmd *TasksCommand) Setup(config commands.Config, ui commands.UI) error {
 }
 
 func (cmd *TasksCommand) Execute(args []string) error {
-	cmd.UI.DisplayText("Getting tasks")
-	v3client := ccv3.NewClient()
+	cmd.UI.DisplayText("Getting tasks for application {{.AppName}}", map[string]interface{}{
+		"AppName": cmd.RequiredArgs.AppName,
+	})
 
+	v3client := ccv3.NewClient()
 	_, err := v3client.TargetCF(cmd.Config.Target(), true)
 	if err != nil {
 		return err
@@ -41,22 +44,22 @@ func (cmd *TasksCommand) Execute(args []string) error {
 	uaaClient := uaa.NewClient(v2client.AuthorizationEndpoint(), cmd.Config)
 	v3client.WrapConnection(wrapper.NewUAAAuthentication(uaaClient))
 
-	queries := url.Values{
-		"space_guids": []string{cmd.Config.TargetedSpace().GUID},
-		"names":       []string{cmd.RequiredArgs.AppName},
-	}
+	queries := url.Values{}
+	queries.Add("space_guids", cmd.Config.TargetedSpace().GUID)
+	queries.Add("names", cmd.RequiredArgs.AppName)
 	apps, err := v3client.GetApplications(queries)
 	if err != nil {
 		return err
 	}
 
 	if len(apps) == 0 {
+		fmt.Println("application not found")
 		return nil
 	}
 
-	tasks, err := v3client.GetTasks(map[string]string{
-		"app_guids": apps[0].GUID,
-	})
+	queries = url.Values{}
+	queries.Add("app_guids", apps[0].GUID)
+	tasks, err := v3client.GetTasks(queries)
 	if err != nil {
 		return err
 	}

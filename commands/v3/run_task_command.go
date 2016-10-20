@@ -31,6 +31,7 @@ func (cmd *RunTaskCommand) Execute(args []string) error {
 	if err != nil {
 		return err
 	}
+
 	cmd.UI.DisplayText("Creating task for app {{.App}} in org {{.Org}} / space {{.Space}} as {{.User}}...", map[string]interface{}{
 		"App":   cmd.RequiredArgs.AppName,
 		"Org":   cmd.Config.TargetedOrganization().Name,
@@ -51,21 +52,20 @@ func (cmd *RunTaskCommand) Execute(args []string) error {
 	uaaClient := uaa.NewClient(v2client.AuthorizationEndpoint(), cmd.Config)
 	v3client.WrapConnection(wrapper.NewUAAAuthentication(uaaClient))
 
-	queries := url.Values{
-		"space_guids": []string{cmd.Config.TargetedSpace().GUID},
-		"names":       []string{cmd.RequiredArgs.AppName},
-	}
+	queries := url.Values{}
+	queries.Add("space_guids", cmd.Config.TargetedSpace().GUID)
+	queries.Add("names", cmd.RequiredArgs.AppName)
 	apps, err := v3client.GetApplications(queries)
 	if err != nil {
 		return err
 	}
 
 	if len(apps) == 0 {
-		fmt.Println("no apps found")
+		fmt.Println("application not found")
 		return nil
 	}
 
-	task, err := v3client.RunTaskByApplication(apps[0].GUID, fmt.Sprintf("{\"command\":\"%s\"}", cmd.RequiredArgs.Command))
+	task, err := v3client.RunTaskByApplication(apps[0].GUID, cmd.RequiredArgs.Command)
 	if err != nil {
 		return err
 	}

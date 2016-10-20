@@ -28,7 +28,6 @@ func (cmd *TerminateTaskCommand) Setup(config commands.Config, ui commands.UI) e
 
 func (cmd *TerminateTaskCommand) Execute(args []string) error {
 	v3client := ccv3.NewClient()
-
 	_, err := v3client.TargetCF(cmd.Config.Target(), true)
 	if err != nil {
 		return err
@@ -41,22 +40,22 @@ func (cmd *TerminateTaskCommand) Execute(args []string) error {
 	uaaClient := uaa.NewClient(v2client.AuthorizationEndpoint(), cmd.Config)
 	v3client.WrapConnection(wrapper.NewUAAAuthentication(uaaClient))
 
-	queries := url.Values{
-		"space_guids": []string{cmd.Config.TargetedSpace().GUID},
-		"names":       []string{cmd.RequiredArgs.AppName},
-	}
+	queries := url.Values{}
+	queries.Add("space_guids", cmd.Config.TargetedSpace().GUID)
+	queries.Add("names", cmd.RequiredArgs.AppName)
 	apps, err := v3client.GetApplications(queries)
 	if err != nil {
 		return err
 	}
 
 	if len(apps) == 0 {
+		fmt.Println("application not found")
 		return nil
 	}
 
-	tasks, err := v3client.GetApplicationTasks(apps[0].GUID, map[string]string{
-		"sequence_ids": cmd.RequiredArgs.TaskID,
-	})
+	queries = url.Values{}
+	queries.Add("sequence_ids", cmd.RequiredArgs.TaskID)
+	tasks, err := v3client.GetApplicationTasks(apps[0].GUID, queries)
 	if err != nil {
 		return err
 	}
@@ -78,6 +77,8 @@ func (cmd *TerminateTaskCommand) Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(task)
+
+	fmt.Println("Deleted: ", task)
+
 	return nil
 }

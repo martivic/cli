@@ -2,6 +2,7 @@ package ccv3
 
 import (
 	"bytes"
+	"fmt"
 	"net/url"
 	"strings"
 	"time"
@@ -58,15 +59,10 @@ func FormatQueryParameters(queries url.Values, queryName string, value ...string
 	return queries
 }
 
-func (client *Client) GetTasks(queries map[string]string) ([]Task, error) {
-	parameters := url.Values{}
-	for queryName, queryValue := range queries {
-		parameters.Add(queryName, queryValue)
-	}
-
+func (client *Client) GetTasks(queries url.Values) ([]Task, error) {
 	request := cloudcontroller.Request{
 		RequestName: internal.TasksRequest,
-		Query:       parameters,
+		Query:       queries,
 	}
 
 	fullTasksList := []Task{}
@@ -98,15 +94,10 @@ func (client *Client) GetTasks(queries map[string]string) ([]Task, error) {
 	return fullTasksList, nil
 }
 
-func (client *Client) GetApplicationTasks(appGUID string, queries map[string]string) ([]Task, error) {
-	parameters := url.Values{}
-	for queryName, queryValue := range queries {
-		parameters.Add(queryName, queryValue)
-	}
-
+func (client *Client) GetApplicationTasks(appGUID string, queries url.Values) ([]Task, error) {
 	request := cloudcontroller.Request{
 		RequestName: internal.AppTaskRequest,
-		Query:       parameters,
+		Query:       queries,
 		Params: map[string]string{
 			"app_guid": appGUID,
 		},
@@ -147,7 +138,7 @@ func (client *Client) RunTaskByApplication(appGUID string, command string) (Task
 		Params: map[string]string{
 			"app_guid": appGUID,
 		},
-		Body: bytes.NewBufferString(command),
+		Body: bytes.NewBufferString(fmt.Sprintf("{\"command\":\"%s\"}", command)),
 	}
 
 	var newTask Task

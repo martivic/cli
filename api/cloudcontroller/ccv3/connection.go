@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -114,7 +113,6 @@ func (connection *Connection) populateResponse(response *http.Response, passedRe
 		}
 	}
 
-	fmt.Printf("response %#v\n", response)
 	err := connection.handleStatusCodes(response)
 	if err != nil {
 		return err
@@ -123,7 +121,6 @@ func (connection *Connection) populateResponse(response *http.Response, passedRe
 	if passedResponse.Result != nil {
 		rawBytes, _ := ioutil.ReadAll(response.Body)
 
-		fmt.Printf("response body %s\n", rawBytes)
 		passedResponse.RawResponse = rawBytes
 
 		decoder := json.NewDecoder(bytes.NewBuffer(rawBytes))
