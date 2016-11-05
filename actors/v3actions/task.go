@@ -11,3 +11,7 @@ func (actor Actor) RunTask(appGUID string, command string) (Task, Warnings, erro
 	task, warnings, err := actor.CloudControllerClient.RunTask(appGUID, command)
 	return Task(task), Warnings(warnings), err
 }
+
+func (actor Actor) GetTasksByApplication(appGUID string) ([]Task, Warnings, error) {
+	return nil, nil, nil
+}
